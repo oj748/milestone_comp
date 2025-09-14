@@ -71,7 +71,7 @@ class Admin(Frame):
     def view(self,event):
         response = requests.post(f"{URL}/view",json={"event":event})
         rec = response.json()
-        hide_all(self.root)
+       # hide_all(self.root)
         style = ttk.Style()
         style.theme_use('clam')
         tree = ttk.Treeview(self.root, column=("Name", "Email", "Phone","Event"), show='headings', height=5)
