@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,jsonify,request
 import pymysql
 
 
@@ -33,32 +33,32 @@ def init_db():
     cursor.close()
     conn.close()
 
-#@app.route("/register",methods=["/POST"])
-def register(name,email,phone,event):
-    '''
+@app.route("/register",methods=["POST"])
+def register():
     data = request.json
     name = data.get("name")
     email = data.get("email")
     phone = data.get('phone')
     event = data.get('event')
-    '''
     get_connection()
     conn = get_connection()
     cursor = conn.cursor()
     try :
         cursor.execute("INSERT INTO event_t values (%s,%s,%s,%s)",(name,email,phone,event))
         conn.commit()
-        return {"status":"success"}
+        return jsonify({"status":"success"})
     except pymysql.err.DataError:
         conn.rollback()
-        return {"status":"failure"}
+        return jsonify({"status":"failure"})
     finally:
         cursor.close()
         conn.close()
 
 
-
-def get_records(event):
+@app.route("/view",methods=["POST"])
+def get_records():
+    data = request.json
+    event = data.get('event')
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM event_t WHERE event = %s",event)
@@ -66,9 +66,10 @@ def get_records(event):
     conn.commit()
     cursor.close()
     conn.close()
-    return rec
+    return jsonify({"records":rec})
 
 
 if __name__ == "__main__" :
     init_db()
+    app.run(debug=True)
 
