@@ -1,6 +1,7 @@
-  from tkinter import *
+from tkinter import *
 from app import *
 from tkinter import ttk
+import requests
 
 
 URL = "http://127.0.0.1:5000"
@@ -9,18 +10,6 @@ URL = "http://127.0.0.1:5000"
 def hide_all(root):
     for frame in root.winfo_children():
         frame.destroy()
-
-
-class Landing(Tk):
-    def __init__(self):
-        super().__init__()
-        self.geometry("900x900")
-        self.configure()
-        Button(self,text="Register for event",command=lambda: register_page(self)).pack(pady=50)
-        Button(self,text="Admin",command= lambda: admin_page(self)).pack(pady=50)
-        Button(self,text="Quit",command=self.quit).pack(pady=50)
-
-
 
 def landing_page(root):
     lp = LandingFrame(root)
@@ -59,8 +48,8 @@ class User(Frame):
         email = self.email.get()
         phone = self.phone.get()
         event = self.event.get()
-       # response = requests.post(f"{URL}/register",json={"name":name,"email":email,"phone":phone,"event":event})
-        data = register(name,email,phone,event)
+        response = requests.post(f"{URL}/register",json={"name":name,"email":email,"phone":phone,"event":event})
+        data = response.json()
         if data.get("status") == "success":
             Label(self.root,text="Registered Successfully").pack(pady=20)
         else:
@@ -75,12 +64,13 @@ class Admin(Frame):
         hide_all(self.root)
         Label(self.root,text="This is admin page").pack()
         Label(self.root,text="Choose Event").pack()
-        event = Entry(self.root)
-        event.pack()
-        Button(self.root,text="View registrations",command=lambda: self.view(event.get())).pack()
+        self.event = Entry(self.root)
+        self.event.pack()
+        Button(self.root,text="View registrations",command=lambda: self.view(self.event.get())).pack()
 
     def view(self,event):
-        rec = get_records(event)
+        response = requests.post(f"{URL}/view",json={"event":event})
+        rec = response.json()
         hide_all(self.root)
         style = ttk.Style()
         style.theme_use('clam')
@@ -94,8 +84,9 @@ class Admin(Frame):
         tree.column("# 4", anchor="center")
         tree.heading("# 4", text="Event")
 
+        records = rec.get('records')
         # Insert the data in Treeview framee
-        for i in rec:
+        for i in records:
             tree.insert('', 'end', text="1", values=i)
 
         tree.pack()
@@ -114,8 +105,11 @@ class LandingFrame(Frame):
 
 
 if __name__ == "__main__":
-    l = Landing()
-    l.mainloop()
+    root = Tk()
+    root.geometry("900x900")
+    root.configure()
+    LandingFrame(root)
+    root.mainloop()
 
 
 
